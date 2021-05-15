@@ -1,8 +1,12 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
-
+ext {
+    koinVersion = '2.0.1'
+    retrofitVersion = '2.9.0'
+}
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
@@ -30,6 +34,10 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -42,4 +50,15 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // koin
+    implementation "org.koin:koin-core:$koinVersion"
+    implementation "org.koin:koin-android:$koinVersion"
+    implementation "org.koin:koin-androidx-viewmodel:$koinVersion"
+
+    // retrofit
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:4.9.0"
+
 }

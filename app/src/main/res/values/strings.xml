@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PreTest</string>
+    <string name="search_hint">Please input user name</string>
 </resources>

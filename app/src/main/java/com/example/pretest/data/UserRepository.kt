@@ -1,5 +1,7 @@
 package com.example.pretest.data
 
+import com.example.pretest.model.User
+
 interface UserRepository {
-    fun searchUser(query: String)
+    suspend fun searchUser(query: String):List<User>?
 }

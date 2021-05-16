@@ -8,6 +8,7 @@ import com.example.pretest.model.User
 import com.example.pretest.utils.UrlUtil
 import retrofit2.HttpException
 import java.io.IOException
+import java.lang.Exception
 
 private const val DEFAULT_PAGE_INDEX = 1
 private const val KET_LINK_HEADER = "link"
@@ -23,20 +24,23 @@ class GithubPagingSource (
         val apiQuery = query
         return try {
             val response = service.searchUser(apiQuery, position, DEFAULT_PAGE_SIZE)
-            val repos = response.body()?.items ?: emptyList()
-            val nextKey = if (repos.isEmpty()) {
-                null
+
+            if (response.isSuccessful) {
+                val repos = response.body()?.items ?: emptyList()
+                val nextKey = if (repos.isEmpty()) {
+                    null
+                } else {
+                    getNextKey(response.headers()[KET_LINK_HEADER])
+                }
+                LoadResult.Page(
+                    data = repos,
+                    prevKey = null,
+                    nextKey = nextKey
+                )
             } else {
-                getNextKey(response.headers()[KET_LINK_HEADER])
+                LoadResult.Error(Error("Https code: ${response.code()}"))
             }
-            LoadResult.Page(
-                data = repos,
-                prevKey = null,
-                nextKey = nextKey
-            )
-        } catch (exception: IOException) {
-            LoadResult.Error(exception)
-        } catch (exception: HttpException) {
+        } catch (exception: Exception) {
             LoadResult.Error(exception)
         }
     }

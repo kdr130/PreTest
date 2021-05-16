@@ -2,4 +2,6 @@
     <string name="app_name">PreTest</string>
     <string name="search_hint">Please input user name</string>
     <string name="no_result">No result</string>
+    <string name="error_message_pattern">Network error(%s), please retry again later</string>
+    <string name="retry">Retry</string>
 </resources>

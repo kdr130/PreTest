@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
 class SearchUserActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySearchUserBinding
     private val viewModel: SearchUserViewModel by viewModel()
@@ -30,8 +29,7 @@ class SearchUserActivity : AppCompatActivity() {
         binding.model = viewModel
         binding.lifecycleOwner = this
 
-        initSearch()
-        initRecyclerView()
+        initView()
         restoreState(savedInstanceState)
     }
 
@@ -40,6 +38,11 @@ class SearchUserActivity : AppCompatActivity() {
         outState.putString(LAST_SEARCH_QUERY, binding.search.text.trim().toString())
     }
 
+    private fun initView() {
+        initSearch()
+        initRecyclerView()
+        initRetryButton()
+    }
 
     private fun initSearch() {
         binding.search.setOnKeyListener { _, keyCode, event ->
@@ -64,6 +67,12 @@ class SearchUserActivity : AppCompatActivity() {
         binding.list.adapter = adapter
         adapter.addLoadStateListener {
             viewModel.setLoadState(it, adapter.itemCount)
+        }
+    }
+
+    private fun initRetryButton() {
+        binding.retryBtn.setOnClickListener {
+            search()
         }
     }
 

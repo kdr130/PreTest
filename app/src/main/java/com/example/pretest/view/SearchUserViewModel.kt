@@ -4,7 +4,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.pretest.data.UserRepository
 import androidx.lifecycle.viewModelScope
+import androidx.paging.CombinedLoadStates
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.pretest.model.User
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class SearchUserViewModel(private val userRepository: UserRepository) : ViewModel() {
@@ -12,29 +17,19 @@ class SearchUserViewModel(private val userRepository: UserRepository) : ViewMode
     val showUserList: MutableLiveData<Boolean> = MutableLiveData()
     val showNoResult: MutableLiveData<Boolean> = MutableLiveData()
 
-    var userList : MutableLiveData<List<User>> = MutableLiveData()
-
     init {
         showLoading.value = false
         showUserList.value = true
         showNoResult.value = false
     }
 
-    fun search(query: String) {
-        showNoResult.value = false
-        showLoading.value = true
+    fun search(query: String): Flow<PagingData<User>> {
+        return userRepository.searchUser(query)
+    }
 
-        viewModelScope.launch {
-            val result = userRepository.searchUser(query)
-            userList.postValue(result)
-
-            showLoading.postValue(false)
-
-            if (result == null || result.isEmpty()) {
-                showNoResult.postValue(true)
-            } else {
-                showUserList.postValue(true)
-            }
-        }
+    fun setLoadState(loadState: CombinedLoadStates, itemCount: Int) {
+        showNoResult.postValue(loadState.refresh is LoadState.NotLoading && itemCount == 0)
+        showUserList.postValue(loadState.source.refresh is LoadState.NotLoading)
+        showLoading.postValue(loadState.source.refresh is LoadState.Loading)
     }
 }

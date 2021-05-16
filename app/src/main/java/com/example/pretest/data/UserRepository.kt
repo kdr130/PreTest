@@ -1,7 +1,9 @@
 package com.example.pretest.data
 
+import androidx.paging.PagingData
 import com.example.pretest.model.User
+import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
-    suspend fun searchUser(query: String):List<User>?
+    fun searchUser(query: String): Flow<PagingData<User>>
 }

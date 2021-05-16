@@ -1,19 +1,24 @@
 package com.example.pretest.view
 
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pretest.databinding.ActivitySearchUserBinding
 import com.example.pretest.utils.KeyboardUtil
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 class SearchUserActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySearchUserBinding
     private val viewModel : SearchUserViewModel by viewModel()
+    private val adapter: SearchUserAdapter = SearchUserAdapter()
+    private var searchJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,23 +32,18 @@ class SearchUserActivity : AppCompatActivity() {
 
         initSearch()
         initRecyclerView()
-        initObserver()
     }
 
     private fun initSearch() {
         binding.search.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                viewModel.search(binding.search.text.toString().trim())
+                search()
                 KeyboardUtil.hideSoftKeyBoard(this@SearchUserActivity, binding.search)
                 true
             } else {
                 false
             }
         }
-
-        // todo: remove it
-        binding.search.setText("test")
-        viewModel.search(binding.search.text.toString().trim())
     }
 
     private fun initRecyclerView() {
@@ -51,13 +51,21 @@ class SearchUserActivity : AppCompatActivity() {
             this, (binding.list.layoutManager as? LinearLayoutManager)?.orientation ?: LinearLayoutManager.VERTICAL
         )
         binding.list.addItemDecoration(dividerItemDecoration)
+
+        binding.list.adapter = adapter
+        adapter.addLoadStateListener {
+            viewModel.setLoadState(it, adapter.itemCount)
+        }
     }
 
-    private fun initObserver() {
-        viewModel.userList.observe(this, {
-            Log.d(TAG, "get list: ${it}")
-            binding.list.adapter = SearchUserAdapter(it)
-        })
+    private fun search() {
+        val query = binding.search.text.toString().trim()
+        searchJob?.cancel()
+        searchJob = lifecycleScope.launch {
+            viewModel.search(query).collectLatest {
+                adapter.submitData(it)
+            }
+        }
     }
 
     companion object {

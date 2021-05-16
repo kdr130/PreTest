@@ -10,12 +10,14 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.pretest.model.User
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
 class SearchUserViewModel(private val userRepository: UserRepository) : ViewModel() {
     val showLoading: MutableLiveData<Boolean> = MutableLiveData()
     val showUserList: MutableLiveData<Boolean> = MutableLiveData()
     val showNoResult: MutableLiveData<Boolean> = MutableLiveData()
+
+    private var currentQueryStr: String? = null
+    private var currentSearchResult: Flow<PagingData<User>>? = null
 
     init {
         showLoading.value = false
@@ -24,7 +26,15 @@ class SearchUserViewModel(private val userRepository: UserRepository) : ViewMode
     }
 
     fun search(query: String): Flow<PagingData<User>> {
-        return userRepository.searchUser(query)
+        val lastResult = currentSearchResult
+        if (query == currentQueryStr && lastResult != null) {
+            return lastResult
+        }
+        currentQueryStr = query
+        val result: Flow<PagingData<User>> = userRepository.searchUser(query)
+            .cachedIn(viewModelScope)
+        currentSearchResult = result
+        return result
     }
 
     fun setLoadState(loadState: CombinedLoadStates, itemCount: Int) {

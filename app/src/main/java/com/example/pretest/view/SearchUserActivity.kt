@@ -16,7 +16,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class SearchUserActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySearchUserBinding
-    private val viewModel : SearchUserViewModel by viewModel()
+    private val viewModel: SearchUserViewModel by viewModel()
     private val adapter: SearchUserAdapter = SearchUserAdapter()
     private var searchJob: Job? = null
 
@@ -32,7 +32,14 @@ class SearchUserActivity : AppCompatActivity() {
 
         initSearch()
         initRecyclerView()
+        restoreState(savedInstanceState)
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(LAST_SEARCH_QUERY, binding.search.text.trim().toString())
+    }
+
 
     private fun initSearch() {
         binding.search.setOnKeyListener { _, keyCode, event ->
@@ -48,7 +55,9 @@ class SearchUserActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         val dividerItemDecoration = DividerItemDecoration(
-            this, (binding.list.layoutManager as? LinearLayoutManager)?.orientation ?: LinearLayoutManager.VERTICAL
+            this,
+            (binding.list.layoutManager as? LinearLayoutManager)?.orientation
+                ?: LinearLayoutManager.VERTICAL
         )
         binding.list.addItemDecoration(dividerItemDecoration)
 
@@ -68,7 +77,17 @@ class SearchUserActivity : AppCompatActivity() {
         }
     }
 
+    private fun restoreState(instanceState: Bundle?) {
+        val lastQuery = instanceState?.getString(LAST_SEARCH_QUERY) ?: ""
+        binding.search.setText(lastQuery)
+
+        if (lastQuery.isNotEmpty()) {
+            search()
+        }
+    }
+
     companion object {
         private const val TAG = "SearchUserActivity"
+        private const val LAST_SEARCH_QUERY = "LAST_SEARCH_QUERY"
     }
 }
